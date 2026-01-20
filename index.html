@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Математическо Приключение</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --leaf-green: #4caf50;
+            --text-dark: #2e7d32;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Comfortaa', cursive;
+            
+            /* ТУК Е ВРЪЗКАТА С КАРТИНКАТА */
+            background-image: url('jungle_background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-color: #e8f5e9; /* Резервен цвят */
+            overflow: hidden;
+        }
+
+        /* Игралното поле е полупрозрачно, за да виждаме фона */
+        #game-card {
+            background: rgba(255, 255, 255, 0.92); 
+            width: 90%;
+            max-width: 650px;
+            border-radius: 50px;
+            padding: 35px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            text-align: center;
+            border: 8px solid white;
+            position: relative;
+            backdrop-filter: blur(5px); /* Модерен ефект на замазване */
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f1f8e9;
+            padding: 8px 15px;
+            border-radius: 15px;
+            color: var(--text-dark);
+            font-size: 16px;
+            border: 2px solid #c8e6c9;
+        }
+
+        #animal-hero {
+            font-size: 80px;
+            margin: 5px 0;
+            display: inline-block;
+        }
+
+        .bounce { animation: bounceAnim 0.6s ease; }
+        @keyframes bounceAnim {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-35px); }
+        }
+
+        #question-area {
+            font-size: 60px;
+            color: var(--leaf-green);
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .answer-box {
+            width: 80px;
+            height: 80px;
+            border: 3px dashed #ccc;
+            border-radius: 15px;
+            background: #fafafa;
+            color: #ddd;
+            line-height: 80px;
+            font-size: 30px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .option-btn {
+            border: none;
+            border-radius: 20px;
+            padding: 25px 5px;
+            font-size: 35px;
+            font-family: 'Comfortaa', cursive;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.1);
+        }
+
+        .option-btn:active { transform: translateY(3px); box-shadow: none; }
+        .btn-yellow { background: #ffca28; }
+        .btn-orange { background: #ff7043; }
+        .btn-blue { background: #4fc3f7; }
+
+        #feedback {
+            margin-top: 25px;
+            height: 35px;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-dark);
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-card">
+    <div class="stats-container">
+        <div class="stat-box">⭐ Точки: <span id="score">0</span></div>
+        <div class="stat-box">🏆 Рекорд: <span id="best">0</span></div>
+    </div>
+
+    <div id="animal-hero">🐒</div>
+
+    <div id="question-area">
+        <span id="q-text">0 + 0</span> = <div class="answer-box">?</div>
+    </div>
+
+    <div class="options">
+        <button class="option-btn btn-yellow" onclick="check(this)"></button>
+        <button class="option-btn btn-orange" onclick="check(this)"></button>
+        <button class="option-btn btn-blue" onclick="check(this)"></button>
+    </div>
+
+    <div id="feedback">Браво! 🎉</div>
+</div>
+
+<script>
+    let score = 0;
+    let bestScore = 0;
+    let correctAnswer = 0;
+    const animals = ['🐒', '🦁', '🦒', '🐘', '🦜', '🐸'];
+
+    function initGame() {
+        document.getElementById('feedback').style.opacity = "0";
+        document.getElementById('animal-hero').classList.remove('bounce');
+
+        let num1, num2, isAddition = Math.random() > 0.5;
+        if (isAddition) {
+            num1 = Math.floor(Math.random() * 11); 
+            num2 = Math.floor(Math.random() * (21 - num1));
+            correctAnswer = num1 + num2;
+            document.getElementById('q-text').innerText = `${num1} + ${num2}`;
+        } else {
+            num1 = Math.floor(Math.random() * 11) + 10;
+            num2 = Math.floor(Math.random() * (num1 + 1));
+            correctAnswer = num1 - num2;
+            document.getElementById('q-text').innerText = `${num1} - ${num2}`;
+        }
+        document.getElementById('animal-hero').innerText = animals[Math.floor(Math.random() * animals.length)];
+        setupOptions();
+    }
+
+    function setupOptions() {
+        const btns = document.querySelectorAll('.option-btn');
+        let choices = [correctAnswer];
+        while(choices.length < 3) {
+            let wrong = correctAnswer + (Math.floor(Math.random() * 5) - 2);
+            if(wrong >= 0 && wrong <= 20 && !choices.includes(wrong)) choices.push(wrong);
+        }
+        choices.sort(() => Math.random() - 0.5);
+        btns.forEach((btn, i) => {
+            btn.innerText = choices[i];
+            btn.style.opacity = "1";
+            btn.disabled = false;
+        });
+    }
+
+    function check(btn) {
+        if (parseInt(btn.innerText) === correctAnswer) {
+            score++;
+            if(score > bestScore) bestScore = score;
+            document.getElementById('score').innerText = score;
+            document.getElementById('best').innerText = bestScore;
+            document.getElementById('feedback').innerText = "Браво! Ти си супер! ✨";
+            document.getElementById('feedback').style.opacity = "1";
+            document.getElementById('animal-hero').classList.add('bounce');
+            document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+            setTimeout(initGame, 1500);
+        } else {
+            document.getElementById('feedback').innerText = "Опитай пак! 💪";
+            document.getElementById('feedback').style.opacity = "1";
+            btn.style.opacity = "0.3";
+        }
+    }
+    initGame();
+</script>
+</body>
+</html>
